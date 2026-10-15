@@ -76,4 +76,4 @@ To roll the hosted app back, deploy `cranbrook/hosted/` from the tag you want.
 - Pricing notes are in the Claude project doc `digital-volleyball-scorebook-tpt-launch.md`.
 - After a retail change: rebuild, re-render the guide and thumbnails if screens changed, then rebuild `package/Digital_Volleyball_Scorebook.zip`.
 
-This repo should stay **private**: `retail/` contains the paid product.
+Note: this repo is public, and `retail/` contains the product sold on TpT.
