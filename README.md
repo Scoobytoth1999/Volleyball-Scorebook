@@ -54,20 +54,20 @@ python3 retail/build.py      # -> retail/dist/Digital_Volleyball_Scorebook.html
   2. In `hosted/index.html`, bump the `?v=N` query strings.
   3. In `hosted/sw.js`, bump `VERSION = 'scorebook-vN'` and the `?v=N` entries in `FILES`.
   4. Copy the files into the Macaly project's `public/sb/`, commit with a file write, publish, and check the live files.
-  5. Tag the commit `cranbrook-vN`.
+  5. Commit to `main`, and add the version and its commit to the list below.
 - On the iPad: open the Scorebook icon on Wi-Fi, close it fully, and reopen it to pick up the new version.
 
 ## Versions
 
-Tags `cranbrook-v1` to `cranbrook-v4` hold the hosted files exactly as deployed:
+Each version's commit holds the hosted files exactly as deployed:
 
-- **v1**: offline PWA, MHSAA scoring, PDF output, saved games
-- **v2**: level presets (4th grade to college), set 3 to 15, number keypad, Copy from set, live log, team colors, Start new match
-- **v3**: MHSAA or AAU scoresheet style, More menu (replay, penalty, card), captain, court-position lineup entry (I–VI)
-- **v4**: **Edit lineup** button next to Undo, so the current set's lineup, libero and captain can be fixed mid-game.
+- **v1** (`a3bc83b`): offline PWA, MHSAA scoring, PDF output, saved games
+- **v2** (`b6a6766`): level presets (4th grade to college), set 3 to 15, number keypad, Copy from set, live log, team colors, Start new match
+- **v3** (`d67135f`): MHSAA or AAU scoresheet style, More menu (replay, penalty, card), captain, court-position lineup entry (I–VI)
+- **v4** (`561ff0b`): **Edit lineup** button next to Undo, so the current set's lineup, libero and captain can be fixed mid-game.
   Mistyped numbers are renamed in that set's subs and cards, and the sheet notes "Lineup corrected at X–Y".
 
-To roll the hosted app back, deploy `cranbrook/hosted/` from the tag you want.
+To roll the hosted app back: `git checkout <commit> -- cranbrook/hosted`, then deploy those files.
 
 ## Retail product
 
