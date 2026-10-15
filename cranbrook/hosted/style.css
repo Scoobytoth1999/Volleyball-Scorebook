@@ -287,3 +287,13 @@ button.logrow.sel { background: color-mix(in srgb, var(--ink) 9%, var(--panel));
   .lineupcourt > .net span { transform: translate(-50%, -50%); }
   .cardgrid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- edit lineup during play ---------- */
+.editlu .nbox.changed { border-style: dashed; border-color: var(--warn); }
+.elpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 240px); gap: 16px; align-items: start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.elpanel .kpdisplay { margin-bottom: 10px; }
+@media (max-width: 760px) { .elpanel { grid-template-columns: minmax(0, 1fr); } }
+.editlu .cslot .nbox { min-height: 44px; font-size: 22px; }
+.editlu .cgrid { gap: 6px; }
+.editlu .lineup { gap: 6px; }
+.editlu .elpanel .key { min-height: 44px; }

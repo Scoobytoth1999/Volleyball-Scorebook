@@ -1,12 +1,12 @@
 /* Offline cache for Volleyball Scorebook. Bump VERSION when files change. */
-var VERSION = 'scorebook-v3';
-var FILES = ['index.html', 'style.css?v=3', 'core.js?v=3', 'ui.js?v=3', 'jspdf.umd.min.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
+var VERSION = 'scorebook-v4';
+var FILES = ['index.html', 'style.css?v=4', 'core.js?v=4', 'ui.js?v=4', 'jspdf.umd.min.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k !== VERSION; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(keys.filter(function (k) { return k.indexOf('scorebook-') === 0 && k !== VERSION; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {

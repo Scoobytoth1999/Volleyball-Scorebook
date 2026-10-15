@@ -205,6 +205,7 @@ var SB = (function () {
       entry.score = { A: score.A, B: score.B };
       log.push(entry);
     });
+    (set.fixes || []).forEach(function (f) { notes.push({ team: f.team, text: 'Lineup corrected at ' + f.at }); });
     return { T: T, score: score, serving: serving, done: done, winner: winner, target: target, notes: notes, sanctions: sanctions, log: log, endTs: done ? lastTs : null };
   }
 

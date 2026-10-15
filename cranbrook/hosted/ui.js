@@ -341,6 +341,7 @@
       (prefs.showLog ? '' : '<button class="btn" data-act="log">Game log</button>') +
       '<button class="btn" data-act="more">More</button>' +
       '<button class="btn" data-act="check">Lineup check</button>' +
+      '<button class="btn" data-act="editlu">Edit lineup</button>' +
       '<button class="btn strong" data-act="undo">Undo</button></div></footer>';
     h += '</div>';
     return h;
@@ -400,6 +401,85 @@
     }
     h += '<div class="actions"><button class="btn" data-act="close">Close</button></div>';
     return mWrap(h);
+  }
+
+  /* ---------- edit lineup during play ---------- */
+  function mEditLineup() {
+    var g = game(), si = curSetIdx(g), set = g.sets[si], m = ui.modal, d = m.draft;
+    var h = '<div class="checkhead"><h2>Edit lineup · Set ' + (si + 1) + '</h2></div>';
+    h += '<p class="sub">Fix a starting lineup that was entered wrong. The whole set is recalculated as if it had been entered correctly. Tap a spot to change its number, or tap <b>Swap</b> to trade two spots.</p>';
+    h += '<div class="lineupcourt">';
+    [[set.left, 'left'], [O(set.left), 'right']].forEach(function (pair, idx) {
+      var t = pair[0], side = pair[1];
+      if (idx === 1) h += netEl('tall');
+      h += '<fieldset class="lineup team-' + t + ' ' + side + '"><legend>' + esc(tn(g, t)) + '</legend><div class="cgrid">';
+      (side === 'left' ? LEFT_LAYOUT : RIGHT_LAYOUT).forEach(function (row) {
+        row.forEach(function (k) {
+          var on = m.sel && m.sel.team === t && m.sel.k === k, num = d.lineup[t][k];
+          var changed = num !== set.lineup[t][k];
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) +
+            (num && d.captain[t] === num ? '<sup class="capmark">C</sup>' : '') + '</button></div>';
+        });
+      });
+      h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
+      if (g.settings.libero) {
+        var lon = m.sel && m.sel.team === t && m.sel.k === 'lib';
+        h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (lon ? ' active' : '') + (d.libero[t] !== set.libero[t] ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="lib">' + (d.libero[t] ? esc(d.libero[t]) : '<i>none</i>') + '</button></div>';
+      }
+      var nums = d.lineup[t].filter(Boolean);
+      h += '<div class="caprow"><span>Captain</span>' + nums.map(function (n) {
+        return '<button type="button" class="capchip' + (d.captain[t] === n ? ' on' : '') + '" data-act="elcap" data-team="' + t + '" data-num="' + esc(n) + '">' + esc(n) + '</button>';
+      }).join('') + '</div></fieldset>';
+    });
+    h += '</div>';
+    if (m.sel) {
+      var label = tn(g, m.sel.team) + ' · ' + (m.sel.k === 'lib' ? 'Libero' : 'Spot ' + SB.ROMAN[m.sel.k]);
+      var cur = m.sel.k === 'lib' ? d.libero[m.sel.team] : d.lineup[m.sel.team][m.sel.k];
+      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
+        (m.sel.k === 'lib' ? '' : '<button type="button" class="btn' + (m.swap ? ' primary' : '') + '" data-act="elswap">' + (m.swap ? 'Now tap the spot to swap with' : 'Swap with another spot') + '</button>') + '</div>' +
+        '<div class="keys inline">' + keypadKeys('<button type="button" class="key fn" data-act="key" data-key="back" aria-label="Delete">⌫</button>') + '</div></div>';
+    } else {
+      h += '<p class="hint center">Tap a spot to edit it.</p>';
+    }
+    h += '<p class="err"' + (m.error ? '' : ' hidden') + '>' + esc(m.error || '') + '</p>';
+    h += '<div class="actions"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="elsave">Save lineup</button></div>';
+    return mWrap(h, 'wide editlu');
+  }
+
+  function saveLineupEdit() {
+    var g = game(), si = curSetIdx(g), set = g.sets[si], m = ui.modal, d = m.draft;
+    var err = lineupError(g, d);
+    if (err) { m.error = err; render(); return; }
+    var R0 = SB.replay(g, si);
+    var ignoredBefore = R0.log.filter(function (e) { return e.ignored; }).length;
+    var changedTeams = [];
+    ['A', 'B'].forEach(function (t) {
+      var oldL = set.lineup[t], newL = d.lineup[t];
+      var oldAll = oldL.concat([set.libero[t] || '']), newAll = newL.concat([d.libero[t] || '']);
+      var changed = JSON.stringify(oldAll) !== JSON.stringify(newAll) || (set.captain[t] || '') !== (d.captain[t] || '');
+      if (!changed) return;
+      changedTeams.push(t);
+      // numbers that were typed wrong: old number gone, new number new -> rename in this set's events
+      var ren = {};
+      oldAll.forEach(function (o, i) {
+        var n = newAll[i];
+        if (o && n && o !== n && newAll.indexOf(o) < 0 && oldAll.indexOf(n) < 0) ren[o] = n;
+      });
+      set.events.forEach(function (ev) {
+        if (ev.team !== t) return;
+        if (ev.t === 'sub') { if (ren[ev.out]) ev.out = ren[ev.out]; if (ren[ev.inn]) ev.inn = ren[ev.inn]; }
+        if (ev.t === 'card' && ren[ev.who]) ev.who = ren[ev.who];
+      });
+      set.lineup[t] = newL.slice(); set.libero[t] = d.libero[t] || ''; set.captain[t] = d.captain[t] || '';
+    });
+    if (!changedTeams.length) { ui.modal = null; render(); toast('No changes'); return; }
+    if (!set.fixes) set.fixes = [];
+    changedTeams.forEach(function (t) { set.fixes.push({ team: t, at: R0.score[t] + '-' + R0.score[O(t)], ts: Date.now() }); });
+    save();
+    var R1 = SB.replay(g, si);
+    var ignoredAfter = R1.log.filter(function (e) { return e.ignored; }).length;
+    ui.modal = { kind: 'check', pre: false }; render();
+    toast(ignoredAfter > ignoredBefore ? 'Lineup saved, but a sub no longer matches. Check the game log.' : 'Lineup corrected. Check the floor against this view.');
   }
 
   function mCheck() {
@@ -494,7 +574,7 @@
     if (v === 'setup') applyColors(ui.draft);
     if (ui.modal) {
       var k = ui.modal.kind;
-      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : k === 'more' ? mMore() : '';
+      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : k === 'more' ? mMore() : k === 'editlu' ? mEditLineup() : '';
     }
     var scrollY = window.scrollY;
     var listEl = document.querySelector('.loglist'), listScroll = listEl ? listEl.scrollTop : 0;
@@ -577,6 +657,12 @@
       ui.modal.error = null; render(); return;
     }
     if (ui.modal && ui.modal.kind === 'more') { ui.modal.who = pressKey(ui.modal.who, key); render(); return; }
+    if (ui.modal && ui.modal.kind === 'editlu') {
+      var em = ui.modal; if (!em.sel) return;
+      if (em.sel.k === 'lib') em.draft.libero[em.sel.team] = pressKey(em.draft.libero[em.sel.team], key);
+      else em.draft.lineup[em.sel.team][em.sel.k] = pressKey(em.draft.lineup[em.sel.team][em.sel.k], key);
+      em.error = null; render(); return;
+    }
     if (!ui.kp || ui.view !== 'lineup') return;
     var set = g.sets[curSetIdx(g)];
     if (key === 'next') {
@@ -721,6 +807,21 @@
         ui.modal = null; render(); break;
       case 'libout': addEvent({ t: 'lib', team: ui.modal.team, action: 'out' }); ui.modal = null; render(); break;
       case 'check': ui.modal = { kind: 'check', pre: false }; render(); break;
+      case 'editlu':
+        var es = g.sets[si];
+        ui.modal = { kind: 'editlu', sel: null, swap: false, error: null,
+          draft: { lineup: { A: es.lineup.A.slice(), B: es.lineup.B.slice() }, libero: { A: es.libero.A || '', B: es.libero.B || '' }, captain: { A: (es.captain && es.captain.A) || '', B: (es.captain && es.captain.B) || '' } } };
+        render(); break;
+      case 'elsel':
+        var em2 = ui.modal, kk = el.getAttribute('data-k') === 'lib' ? 'lib' : Number(el.getAttribute('data-k'));
+        if (em2.swap && em2.sel && em2.sel.team === team && kk !== 'lib' && kk !== em2.sel.k) {
+          var arr = em2.draft.lineup[team], tmp = arr[kk]; arr[kk] = arr[em2.sel.k]; arr[em2.sel.k] = tmp;
+          em2.swap = false; em2.sel = null; em2.error = null; render(); toast('Swapped spots'); break;
+        }
+        em2.swap = false; em2.sel = { team: team, k: kk }; render(); break;
+      case 'elswap': ui.modal.swap = !ui.modal.swap; render(); break;
+      case 'elcap': var ec = ui.modal.draft.captain; ec[team] = ec[team] === el.getAttribute('data-num') ? '' : el.getAttribute('data-num'); render(); break;
+      case 'elsave': saveLineupEdit(); break;
       case 'swap': g.sets[si].left = O(g.sets[si].left); save(); render(); break;
       case 'rot':
         addEvent({ t: 'rot', team: team, dir: Number(el.getAttribute('data-dir')) }); render(); toast('Rotation corrected for ' + tn(g, team) + '. Noted on the scoresheet.'); break;
@@ -799,13 +900,13 @@
 
   /* physical keyboard support for laptops */
   document.addEventListener('keydown', function (e) {
-    var inSub = ui.modal && (ui.modal.kind === 'sub' || ui.modal.kind === 'more');
+    var inSub = ui.modal && (ui.modal.kind === 'sub' || ui.modal.kind === 'more' || ui.modal.kind === 'editlu');
     if (ui.kp || inSub) {
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); keypadPress(e.key); return; }
       if (e.key === 'Backspace') { e.preventDefault(); keypadPress(inSub ? 'back' : 'clr'); return; }
       if (e.key === 'Enter' || e.key === 'Tab') {
         e.preventDefault();
-        if (inSub) { var b = document.querySelector('[data-act="dosub"],[data-act="docard"]'); if (b) b.click(); } else keypadPress('next');
+        if (inSub) { var b = document.querySelector('[data-act="dosub"],[data-act="docard"],[data-act="elsave"]'); if (b) b.click(); } else keypadPress('next');
         return;
       }
     }
