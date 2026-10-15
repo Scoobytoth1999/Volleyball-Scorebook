@@ -1,0 +1,86 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  :root { --navy: #1f3a6e; --navy2: #172c55; --gold: #e0a91b; --ink: #18202b; --muted: #556171; --bg: #eef1f4; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: Inter, Arial, sans-serif; background: #ccc; }
+  .card { width: 1500px; height: 1500px; position: relative; overflow: hidden; background: var(--bg); color: var(--ink); }
+  .navy { background: var(--navy); color: #fff; }
+  .ring { position: absolute; border-radius: 50%; border: 60px solid var(--gold); }
+  .kicker { font-size: 34px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 750; color: var(--gold); }
+  h1 { font-size: 130px; line-height: 0.98; font-weight: 850; letter-spacing: -0.03em; }
+  h2 { font-size: 88px; line-height: 1.02; font-weight: 820; letter-spacing: -0.025em; }
+  .lead { font-size: 40px; line-height: 1.3; }
+  .shot { display: block; border-radius: 18px; box-shadow: 0 30px 70px rgba(10,20,40,0.28); border: 2px solid rgba(255,255,255,0.6); }
+  .pills { display: flex; gap: 16px; flex-wrap: wrap; }
+  .pill { font-size: 32px; font-weight: 700; padding: 14px 26px; border-radius: 99px; background: #fff; color: var(--navy); }
+  .pill.gold { background: var(--gold); color: #1b1b1b; }
+  .pill.line { background: transparent; color: #fff; border: 3px solid rgba(255,255,255,0.7); }
+  .foot { position: absolute; left: 80px; right: 80px; bottom: 56px; display: flex; justify-content: space-between; font-size: 30px; font-weight: 650; }
+  .callout { position: absolute; background: var(--gold); color: #1b1b1b; font-size: 34px; font-weight: 780; padding: 16px 26px; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+  .list { font-size: 40px; line-height: 1.35; list-style: none; padding: 0; }
+  .list li { padding-left: 56px; position: relative; margin-bottom: 18px; }
+  .list li::before { content: ''; position: absolute; left: 0; top: 14px; width: 30px; height: 30px; border-radius: 50%; background: var(--gold); }
+  .sheet { background: #fff; border-radius: 10px; box-shadow: 0 20px 50px rgba(10,20,40,0.25); display: block; }
+</style></head>
+<body>
+
+<!-- 1: cover -->
+<div class="card navy" id="t1">
+  <div class="ring" style="width:620px;height:620px;right:-170px;top:-200px"></div>
+  <div style="position:absolute;left:90px;top:110px;right:90px">
+    <div class="kicker">For coaches and scorekeepers</div>
+    <h1 style="margin-top:26px">Digital<br>Volleyball<br>Scorebook</h1>
+    <div class="lead" style="margin-top:30px;max-width:900px;color:#d7e0ee">Keep the official game book on a laptop. Print a finished scoresheet when the match ends.</div><div style="margin-top:14px;font-size:30px;font-weight:650;color:#aebbd0">Chrome or Edge on Windows, Mac, or Chromebook · Not for iPad</div>
+  </div>
+  <img class="shot" src="06_live.jpg" style="position:absolute;left:90px;top:870px;width:1320px">
+  <div class="pills" style="position:absolute;left:90px;top:760px">
+    <span class="pill gold">School + club sheets</span><span class="pill">Works offline</span><span class="pill">Tap to score</span>
+  </div>
+  
+</div>
+
+<!-- 2: tap to score -->
+<div class="card" id="t2">
+  <div style="position:absolute;left:90px;top:100px;right:90px">
+    <div class="kicker" style="color:#9a6a00">Score every rally with one tap</div>
+    <h2 style="margin-top:20px">It tracks the server,<br>rotation, and side-outs.</h2>
+  </div>
+  <img class="shot" src="06_live.jpg" style="position:absolute;left:90px;top:500px;width:1320px">
+  <div class="callout" style="left:120px;top:455px">Live log settles disputes</div>
+  <div class="callout" style="right:120px;top:1290px">Big point buttons in team colors</div>
+  <div class="callout" style="left:120px;top:1290px">Timeouts and subs counted</div>
+</div>
+
+<!-- 3: printed sheets -->
+<div class="card navy" id="t3">
+  <div class="ring" style="width:520px;height:520px;left:-200px;bottom:-220px"></div>
+  <div style="position:absolute;left:90px;top:100px;right:90px">
+    <div class="kicker">Done when the match is</div>
+    <h2 style="margin-top:20px">Prints the official<br>scoresheet as a PDF</h2>
+    <div class="pills" style="margin-top:34px"><span class="pill gold">School (NFHS rally scoring)</span><span class="pill">Club (USAV/AAU style)</span><span class="pill line">Blank sheets too</span></div>
+  </div>
+  <img class="sheet" src="school-1.jpg" style="position:absolute;left:90px;top:640px;width:900px;transform:rotate(-3deg)">
+  <img class="sheet" src="club-1.jpg" style="position:absolute;right:80px;top:860px;width:900px;transform:rotate(2.5deg)">
+  
+</div>
+
+<!-- 4: features / what's included -->
+<div class="card" id="t4">
+  <div style="position:absolute;left:90px;top:100px;right:90px">
+    <div class="kicker" style="color:#9a6a00">Built at the scorer's table</div>
+    <h2 style="margin-top:20px">Fewer mistakes.<br>Faster fixes.</h2>
+  </div>
+  <img class="shot" src="04_lineup.jpg" style="position:absolute;right:80px;top:440px;width:720px">
+  <img class="shot" src="08_log.jpg" style="position:absolute;right:180px;top:900px;width:660px">
+  <ul class="list" style="position:absolute;left:90px;top:460px;width:560px;font-size:36px">
+    <li>Lineups laid out like the court</li>
+    <li>Blocks illegal subs, with an injury override</li>
+    <li>Undo, plus an editable game log</li>
+    <li>Libero, captain, cards, and replays</li>
+    <li>Levels from 4th grade to college</li>
+    <li>No accounts. Data stays on your computer.</li>
+  </ul>
+  <div class="foot" style="color:var(--muted)"><span>Includes the app file and an 8-page Quick-Start Guide</span></div>
+</div>
+</body></html>

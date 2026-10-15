@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Digital Volleyball Scorebook Quick-Start Guide</title>
+<style>
+  @page { size: letter; margin: 0.6in 0.65in 0.7in; }
+  :root { --ink: #18202b; --muted: #556171; --line: #d6dce4; --navy: #1f3a6e; --gold: #e0a91b; --soft: #eef2f7; --tint: #f6f1e2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: var(--ink); font-size: 10.6pt; line-height: 1.5; }
+  h1, h2, h3 { line-height: 1.15; margin: 0; }
+  h2 { font-size: 19pt; font-weight: 750; letter-spacing: -0.01em; margin-bottom: 4pt; color: var(--navy); }
+  h3 { font-size: 11.5pt; font-weight: 700; margin: 12pt 0 3pt; }
+  p { margin: 0 0 6pt; }
+  .lead { font-size: 11.5pt; color: var(--muted); margin-bottom: 12pt; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .step { display: grid; grid-template-columns: 22pt 1fr; gap: 8pt; margin: 6pt 0; }
+  .num { width: 20pt; height: 20pt; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: 10pt; display: flex; align-items: center; justify-content: center; }
+  .shot { width: 100%; border: 1px solid var(--line); border-radius: 6pt; display: block; margin: 8pt 0 4pt; }
+  .cap { font-size: 8.5pt; color: var(--muted); margin: 0 0 8pt; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; align-items: start; }
+  .tip { background: var(--tint); border-left: 4px solid var(--gold); padding: 7pt 10pt; margin: 8pt 0; font-size: 10pt; }
+  .tip b { color: #7a5a00; }
+  .warn { background: #fbe9e7; border-left: 4px solid #b3261e; padding: 7pt 10pt; margin: 8pt 0; font-size: 10pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6pt 0 8pt; }
+  th, td { text-align: left; padding: 4pt 6pt; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  kbd { font-family: inherit; font-weight: 650; background: var(--soft); border: 1px solid var(--line); border-radius: 4pt; padding: 0 4pt; font-size: 9.5pt; }
+  ul { margin: 2pt 0 8pt; padding-left: 14pt; }
+  li { margin-bottom: 2pt; }
+  .runner { position: fixed; bottom: -0.45in; left: 0; right: 0; font-size: 8pt; color: var(--muted); display: flex; justify-content: space-between; }
+  /* cover */
+  .cover > div + div { margin-top: 26pt; }
+  .cover .band { background: var(--navy); color: #fff; border-radius: 10pt; padding: 34pt 30pt 28pt; position: relative; overflow: hidden; }
+  .cover .band::after { content: ''; position: absolute; right: -40pt; top: -40pt; width: 180pt; height: 180pt; border-radius: 50%; border: 18pt solid var(--gold); opacity: 0.9; }
+  .cover .kicker { font-size: 10pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .cover h1 { font-size: 34pt; font-weight: 800; letter-spacing: -0.02em; margin: 10pt 0 6pt; max-width: 80%; }
+  .cover .sub { font-size: 13pt; color: #d7e0ee; max-width: 75%; }
+  .cover .shot { margin-top: 18pt; box-shadow: 0 10pt 30pt rgba(0,0,0,0.12); }
+  .cover .contents { display: grid; grid-template-columns: 1fr 1fr; gap: 4pt 18pt; font-size: 10pt; }
+  .cover .contents div { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--line); padding: 3pt 0; }
+  .cover .by { font-size: 9pt; color: var(--muted); display: flex; justify-content: space-between; margin-top: 10pt; }
+</style>
+</head>
+<body>
+
+<!-- 1. Cover -->
+<section class="page cover">
+  <div>
+    <div class="band">
+      <div class="kicker">Quick-Start Guide</div>
+      <h1>Digital Volleyball Scorebook</h1>
+      <div class="sub">Keep the official game book on a laptop or Chromebook, and print a finished school or club scoresheet when the match ends.</div>
+    </div>
+    <img class="shot" src="06_live.jpg" alt="Scoring screen" style="width:84%;margin-left:auto;margin-right:auto">
+  </div>
+  <div>
+    <h3 style="margin-top:0">In this guide</h3>
+    <div class="contents">
+      <div><span>Before you start</span><span>2</span></div>
+      <div><span>Fixing mistakes</span><span>6</span></div>
+      <div><span>Set up a match</span><span>3</span></div>
+      <div><span>Ending a set and the match</span><span>7</span></div>
+      <div><span>Enter lineups</span><span>4</span></div>
+      <div><span>Backups and moving computers</span><span>8</span></div>
+      <div><span>Scoring the match</span><span>5</span></div>
+      <div><span>Questions, help, and terms of use</span><span>8</span></div>
+    </div>
+    <div class="by"><span>Version 1.0 · Mike Toth</span><span>Support: oaklandballistics@gmail.com</span></div>
+  </div>
+</section>
+
+<!-- 2. Before you start -->
+<section class="page">
+  <h2>Before you start</h2>
+  <p class="lead">The whole scorebook is one file. There's nothing to install and no account to make.</p>
+  <h3>What you need</h3>
+  <ul>
+    <li>A <b>Windows, Mac, or Chromebook</b> computer. Touchscreen laptops work especially well at the scorer's table.</li>
+    <li>The <b>Chrome</b> or <b>Edge</b> browser.</li>
+    <li>No internet connection is needed once the file is on your computer.</li>
+  </ul>
+  <div class="warn"><b>Not for iPad or iPhone.</b> iPads can't run a downloaded web file, so saving games and making PDFs won't work there.</div>
+  <h3>Set it up once</h3>
+  <div class="step"><div class="num">1</div><div>Unzip the download and move <kbd>Digital_Volleyball_Scorebook.html</kbd> to a folder you'll keep, such as Documents. <b>Leave it there.</b></div></div>
+  <div class="step"><div class="num">2</div><div>Open the file in Chrome or Edge. On most computers you can double-click it. If it opens in a different browser, right-click it and choose <kbd>Open with</kbd>. On a Chromebook, open it from the Files app.</div></div>
+  <div class="step"><div class="num">3</div><div>Bookmark the page so you can find it in seconds on game day.</div></div>
+  <div class="step"><div class="num">4</div><div>Tap <kbd>Load a sample match</kbd> to see a finished match, then open it or save its PDF to see what you'll hand in.</div></div>
+  <img class="shot" src="01_home.jpg" alt="Home screen with a saved match" style="width:68%">
+  <p class="cap">The home screen lists your saved games. From here you can open a match, save or print its PDF, and make backups.</p>
+  <div class="tip"><b>Where your games are saved:</b> in this browser on this computer. Opening the file from a different folder or in a different browser shows an empty list. Your games aren't lost; they're just in the other spot. See <i>Backups</i> on page 8.</div>
+</section>
+
+<!-- 3. Set up a match -->
+<section class="page">
+  <h2>Set up a match</h2>
+  <p class="lead">Tap <kbd>New match</kbd>. Everything you enter here prints at the top of the scoresheet.</p>
+  <div class="two">
+    <div>
+      <h3>Teams and colors</h3>
+      <p>Type both team names and pick a color for each. The colors only change the scoring screen, so it's easy to tell the sides apart at a glance. The printed sheet stays black and white.</p>
+      <h3>Level</h3>
+      <p>Pick a level from 4th grade through college. The level fills in the rules for you:</p>
+      <table>
+        <tr><th>Level</th><th>Rules filled in</th></tr>
+        <tr><td>4th–8th grade</td><td>All 3 sets played, to 25 / 25 / 15, 18 subs, school sheet</td></tr>
+        <tr><td>Freshman, JV</td><td>Best of 3, libero on, school sheet</td></tr>
+        <tr><td>Varsity</td><td>Best of 5, fifth set to 15, school sheet</td></tr>
+        <tr><td>Club</td><td>Best of 3, 12 subs, club sheet</td></tr>
+        <tr><td>College</td><td>Best of 5, 15 subs, club sheet</td></tr>
+      </table>
+      <p>You can change any rule afterward: points per set, win by, timeouts, subs, and the libero.</p>
+      <h3>Scoresheet style</h3>
+      <p><b>School (NFHS rally scoring)</b> prints one set per page with the running score down the middle. <b>Club (USAV/AAU style)</b> prints two sets per page with service rounds and a sanctions table. Use the style your league hands in.</p>
+    </div>
+    <div><img class="shot" src="02_setup.jpg" alt="New match screen"><p class="cap">The new match screen. Officials' names print in the signature areas.</p></div>
+  </div>
+</section>
+
+<!-- 4. Lineups -->
+<section class="page">
+  <h2>Enter lineups</h2>
+  <p class="lead">The boxes are laid out like the court as seen from the scorer's table, with the net in the middle.</p>
+  <img class="shot" src="03_lineup_keypad.jpg" alt="Lineup entry with keypad" style="width:84%">
+  <p class="cap">Box I is back right and serves first. Tap a box, type the jersey number on the keypad, then tap Next to move to the next serve spot.</p>
+  <div class="two">
+    <div>
+      <h3>Tips</h3>
+      <ul>
+        <li>The on-screen keypad keeps the full keyboard out of the way. On a laptop, the number keys and Enter work too.</li>
+        <li>Tap a number in the <b>Captain</b> row to mark the captain. It prints on both sheet styles.</li>
+        <li>Choose which team <b>serves first</b> and which team is <b>on the left</b> as you look from the table.</li>
+        <li>For sets 2 and up, <b>Copy from</b> fills in a team's lineup from an earlier set. You can still change any box.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Lineup check</h3>
+      <p>Tap <kbd>Check lineups</kbd> to see both teams where they'll actually stand. Compare it with the floor and the lineup cards, then tap <kbd>Start set</kbd>.</p>
+      <img class="shot" src="05_check.jpg" alt="Lineup check">
+      <p class="cap">The receiving team shows one rotation back, with server I in right front, because they rotate into serve after their first side-out.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Scoring -->
+<section class="page">
+  <h2>Scoring the match</h2>
+  <p class="lead">After each rally, tap the big <b>Point</b> button for the team that won it. The app handles side-outs, rotations, and who's serving.</p>
+  <img class="shot" src="06_live.jpg" alt="Scoring screen">
+  <p class="cap">The serving team is outlined and its server is highlighted. The live log across the top shows the last three events. Tap Hide log for bigger buttons.</p>
+  <div class="two">
+    <div>
+      <h3>Timeouts and subs</h3>
+      <ul>
+        <li><b>Timeout</b> records the score when it's called and counts toward the limit.</li>
+        <li><b>Sub:</b> tap the player coming out, type the player going in, then tap <kbd>Make sub</kbd>.</li>
+        <li>Illegal subs are blocked with a plain explanation, such as a player going into the wrong serve spot or the limit being reached.</li>
+        <li><b>Injury sub</b> lets an exceptional substitution through for an injured or ill player. That player can't come back this set, and the sheet notes it.</li>
+        <li><b>Libero</b> appears when a libero is entered. Libero swaps don't count as subs.</li>
+      </ul>
+    </div>
+    <div><img class="shot" src="07_sub.jpg" alt="Substitution dialog"><p class="cap">The sub dialog has its own keypad.</p></div>
+  </div>
+</section>
+
+<!-- 6. Fixing mistakes -->
+<section class="page">
+  <h2>Fixing mistakes</h2>
+  <p class="lead">Every tap is kept in a log, and the score, rotation, and sheet are rebuilt from it. Fixing the log fixes everything after it.</p>
+  <div class="two">
+    <div>
+      <h3>Undo</h3>
+      <p>Removes the last thing you entered: a point, timeout, sub, or anything else.</p>
+      <h3>Game log</h3>
+      <p>Tap <kbd>Full log</kbd> or <kbd>Game log</kbd>. Tap any row in the current set to <b>give that point to the other team</b> or <b>delete it</b>. Use this when a mistake turns up a few rallies later, so you don't have to undo good points.</p>
+      <h3>Rotation off?</h3>
+      <p>Open <kbd>Lineup check</kbd> and use <b>Back one</b> or <b>Forward one</b> for that team. The correction is noted on the sheet.</p>
+    </div>
+    <div><img class="shot" src="08_log.jpg" alt="Game log"><p class="cap">Each row shows the score, what happened, and who was serving, which helps settle disputes.</p></div>
+  </div>
+  <h3>The More button</h3>
+  <p>Less common calls live under <kbd>More</kbd>: <b>Replay</b> (no point), <b>Penalty point</b>, and <b>Yellow or red card</b>. A red card gives a point and the serve to the other team. All of them print on the sheet.</p>
+  <img class="shot" src="09_more.jpg" alt="More menu" style="width:70%">
+</section>
+
+<!-- 7. Ending -->
+<section class="page">
+  <h2>Ending a set and the match</h2>
+  <p class="lead">When a team reaches the target score and leads by 2, the set ends on its own.</p>
+  <div class="two">
+    <div><img class="shot" src="10_setover.jpg" alt="Set over"><p class="cap">Tap the next set's lineups, or Undo if the last point was a mistake.</p></div>
+    <div><img class="shot" src="11_copy.jpg" alt="Next set lineups"><p class="cap">Copy from an earlier set, then change anything that's different.</p></div>
+  </div>
+  <p>Teams switch sides and the first serve alternates automatically between sets, and you can change either one. In best-of matches, the app stops when a team wins enough sets.</p>
+  <h3>Save or print the scoresheet</h3>
+  <ul>
+    <li><kbd>Save PDF</kbd> downloads the finished game book. Email it, upload it, or print it later.</li>
+    <li><kbd>Print</kbd> opens the PDF in a new tab so you can print it right away.</li>
+    <li>You can save the PDF in the middle of a match too. Unfinished sets show as in progress.</li>
+    <li><kbd>Blank school sheet</kbd> and <kbd>Blank club sheet</kbd> on the home screen print empty sheets for a paper backup.</li>
+  </ul>
+  <h3>Reading the school sheet</h3>
+  <p>Each server's row shows the team's running score for every point they win on serve, such as <b>1 2 3 --</b>, where <b>--</b> means they lost the rally. A point won on the other team's serve is boxed at the start of the next server's row. S, Sx, T, and Tx mark subs and timeouts, and the key at the bottom of the sheet explains the rest.</p>
+  <p><b>Start new match</b> on the final screen keeps the date, site, officials, level, and rules, so back-to-back matches only need new team names.</p>
+</section>
+
+<!-- 8. Backups, FAQ, terms -->
+<section class="page">
+  <h2>Backups and moving computers</h2>
+  <ul>
+    <li><kbd>Back up all games</kbd> on the home screen saves one file with every game. Do this after each match.</li>
+    <li>To move games to another computer or browser, open the scorebook there and use <kbd>Restore from a backup file</kbd>. Games that are already there are skipped.</li>
+    <li>Clearing your browser's history or site data also erases saved games. A backup protects you from this.</li>
+  </ul>
+  <h3>Questions</h3>
+  <table>
+    <tr><td style="width:36%"><b>My saved games disappeared.</b></td><td>The file was probably opened from a different folder or in a different browser. Open it from its usual spot, or restore your latest backup.</td></tr>
+    <tr><td><b>It opened in Safari or Firefox.</b></td><td>Right-click the file, choose Open with, and pick Chrome or Edge.</td></tr>
+    <tr><td><b>Print didn't open a new tab.</b></td><td>Your browser blocked the pop-up. The PDF downloads instead, so open it and print from there.</td></tr>
+    <tr><td><b>Can I use it on an iPad?</b></td><td>No. Use a laptop or Chromebook.</td></tr>
+    <tr><td><b>Does it need Wi-Fi?</b></td><td>No. Everything runs and saves on your computer.</td></tr>
+    <tr><td><b>Can I change the rules?</b></td><td>Yes. On the new match screen, or later from Menu, then Game info.</td></tr>
+  </table>
+  <h3>Help</h3>
+  <p>Email <b>oaklandballistics@gmail.com</b>. Please include your computer type, your browser, and a screenshot if you can.</p>
+  <h3>Terms of use</h3>
+  <p style="font-size:9.5pt">One purchase covers one coach or scorekeeper, on as many of their own computers as they like. Please buy an additional license for each other person who uses it. Don't post or share the file publicly, including on school websites or shared drives. Scoresheet layouts follow common school (NFHS rally scoring) and club (USAV/AAU style) formats. This product is not affiliated with or endorsed by NFHS, any state association, USA Volleyball, or AAU. Always follow your league's official rules and scoresheet requirements. Provided as is. Keep a paper backup for important matches.</p>
+  <p style="font-size:9pt;color:var(--muted)">© 2026 Mike Toth. All rights reserved.</p>
+</section>
+
+</body>
+</html>
