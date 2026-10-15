@@ -1,4 +1,4 @@
-/* ---------- Scorebook UI (v2) ---------- */
+/* ---------- Scorebook UI (v3) ---------- */
 (function () {
   var KEY = 'vbScorebook.v1', PREF_KEY = 'vbScorebook.prefs';
   var db = { games: {} };
@@ -15,6 +15,8 @@
     if (!g.settings.points) g.settings.points = SB.pointsFor(g.settings.setsTotal);
     if (!g.info.colorA) g.info.colorA = 'royal';
     if (!g.info.colorB) g.info.colorB = 'orange';
+    if (!g.settings.style) g.settings.style = 'mhsaa';
+    (g.sets || []).forEach(function (s) { if (!s.captain) s.captain = { A: '', B: '' }; });
     return g;
   }
   function load() {
@@ -135,6 +137,16 @@
       case 'sub': out.what = 'Sub ' + tm() + ' #' + esc(ev.inn) + ' in for #' + esc(ev.out) + (ev.injury ? ' (injury)' : ''); out.meta = e.slot != null ? 'spot ' + SB.ROMAN[e.slot] : ''; break;
       case 'rot': out.what = 'Rotation corrected ' + tm(); out.meta = ev.dir > 0 ? 'forward one' : 'back one'; break;
       case 'lib': out.what = 'Libero ' + ev.action + ' ' + tm() + (ev.action === 'in' && e.replaced ? ' for #' + esc(e.replaced) : ''); out.meta = SB.fmtTime(ev.ts); break;
+      case 'rp': out.what = 'Replay'; out.meta = SB.fmtTime(ev.ts); break;
+      case 'pen':
+        out.what = 'Penalty point ' + tm() + (e.sideout ? ' · side out' : '') + (e.setPoint ? ' · set point' : '');
+        out.meta = 'P1';
+        break;
+      case 'card':
+        out.what = (ev.color === 'red' ? 'Red' : 'Yellow') + ' card ' + tm() + ' ' + (ev.who ? '#' + esc(ev.who) : 'coach/bench') +
+          (ev.color === 'red' ? ' · point ' + teamSpan(g, O(t)) : '');
+        out.meta = SB.fmtTime(ev.ts);
+        break;
     }
     if (e.ignored) out.meta = 'not applied';
     return out;
@@ -174,7 +186,7 @@
     }
     h += '</section><section class="restore"><h2>Restore a backup</h2><p class="sub">Backup files let you move a game to another device or keep a copy if this device\'s data gets cleared.</p>' +
       '<label class="btn file">Choose backup file<input type="file" id="importFile" accept=".json,application/json"></label></section>';
-    h += '<section class="restore"><h2>Blank scoresheet</h2><p class="sub">A printable sheet with nothing filled in, for a paper backup.</p><button class="btn" data-act="blankpdf">Save blank PDF</button></section></div>';
+    h += '<section class="restore"><h2>Blank scoresheet</h2><p class="sub">A printable sheet with nothing filled in, for a paper backup.</p><div class="actions left"><button class="btn" data-act="blankpdf" data-style="mhsaa">Blank MHSAA sheet</button><button class="btn" data-act="blankpdf" data-style="aau">Blank AAU sheet</button></div></section></div>';
     return h;
   }
 
@@ -204,7 +216,15 @@
     h += '</div>';
     h += '<div class="grid3"><label class="field"><span>Level</span><select id="f-level">' + levelOpts + '</select></label>' + f('f-date', 'Date', I.date, 'date') + f('f-site', 'Site', I.site, 'text', 'Gym') + '</div>';
     if (I.level === 'Other' || !known) h += f('f-levelother', 'Level name', I.levelOther || '', 'text', 'Describe the level');
-    h += '<div class="grid2">' + f('f-scorer', 'Scorer', I.scorer, 'text', 'Your name') + f('f-ref', 'Referee', I.referee, 'text', '') + '</div>';
+    h += '<div class="grid2"><label class="field"><span>Scoresheet style</span><select id="f-style">' + SB.STYLES.map(function (s) { return '<option value="' + s.id + '"' + (S.style === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></label>' +
+      (S.style === 'aau' ? f('f-matchno', 'Match number', I.matchNo, 'text', '') : f('f-gamenum', 'Game number', I.gameNumber, 'text', '')) + '</div>';
+    if (S.style === 'aau') {
+      h += '<div class="grid2">' + f('f-comp', 'Name of the competition', I.competition, 'text', 'Fall Classic') + f('f-city', 'City, state', I.city, 'text', 'Bloomfield Hills, MI') + '</div>';
+      h += '<div class="grid3">' + f('f-pool', 'Pool phase', I.pool, 'text', '') +
+        '<label class="field"><span>Division</span><select id="f-div">' + ['', 'Men', 'Women', 'CoEd'].map(function (v) { return '<option value="' + v + '"' + (I.division === v ? ' selected' : '') + '>' + (v || '—') + '</option>'; }).join('') + '</select></label>' +
+        '<label class="field"><span>Category</span><select id="f-cat">' + ['', 'Adult', 'Junior'].map(function (v) { return '<option value="' + v + '"' + (I.category === v ? ' selected' : '') + '>' + (v || '—') + '</option>'; }).join('') + '</select></label></div>';
+    }
+    h += '<div class="grid3">' + f('f-scorer', 'Scorer', I.scorer, 'text', 'Your name') + f('f-ref', 'First referee', I.referee, 'text', '') + f('f-ref2', 'Second referee', I.referee2 || '', 'text', '') + '</div>';
     h += '<h3>Rules</h3><p class="hint">Filled in from the level. Change anything that differs for this match.</p>';
     h += '<div class="grid3"><label class="field"><span>Match format</span><select id="f-format"><option value="all"' + (S.format === 'all' ? ' selected' : '') + '>Play every set</option><option value="bestof"' + (S.format === 'bestof' ? ' selected' : '') + '>Best of</option></select></label>' +
       '<label class="field"><span>Sets</span><select id="f-sets">' + [3, 5].map(function (n) { return '<option' + (S.setsTotal === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>' +
@@ -222,23 +242,35 @@
 
   function vLineup() {
     var g = game(), si = curSetIdx(g), set = g.sets[si];
-    var h = '<div class="page narrow"><header class="pagehead"><div><h1>Set ' + (si + 1) + ' lineups</h1><p class="sub">Tap a box to enter numbers in serve order. Spot I serves first. Set to ' + (g.settings.points[si] || 25) + '.</p></div><button class="btn" data-act="menu">Menu</button></header>';
-    h += '<form id="lineupForm" class="card form"><div class="lineups">';
-    ['A', 'B'].forEach(function (t) {
-      h += '<fieldset class="lineup team-' + t + '"><legend>' + esc(tn(g, t)) + '</legend>';
+    var h = '<div class="page"><header class="pagehead"><div><h1>Set ' + (si + 1) + ' lineups</h1><p class="sub">Boxes sit where each serve spot starts on the court, seen from the table. I is back right and serves first. Set to ' + (g.settings.points[si] || 25) + '.</p></div><button class="btn" data-act="menu">Menu</button></header>';
+    h += '<form id="lineupForm" class="card form"><div class="lineupcourt">';
+    var sides = [[set.left, 'left'], [O(set.left), 'right']];
+    sides.forEach(function (pair, idx) {
+      var t = pair[0], side = pair[1];
+      if (idx === 1) h += netEl('tall');
+      h += '<fieldset class="lineup team-' + t + ' ' + side + '"><legend>' + esc(tn(g, t)) + '</legend>';
       var prev = [];
       for (var j = 0; j < si; j++) if (g.sets[j] && g.sets[j].started) prev.push(j);
       if (prev.length) h += '<div class="copyrow"><span>Copy from</span>' + prev.map(function (j) { return '<button type="button" class="btn small" data-act="copy" data-team="' + t + '" data-from="' + j + '">Set ' + (j + 1) + '</button>'; }).join('') + '</div>';
-      h += '<div class="slots">';
-      for (var k = 0; k < 6; k++) {
-        var act = ui.kp && ui.kp.team === t && ui.kp.k === k;
-        h += '<div class="slot"><span>' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (act ? ' active' : '') + '" data-act="kp" data-team="' + t + '" data-k="' + k + '" aria-label="' + esc(tn(g, t)) + ' spot ' + SB.ROMAN[k] + '">' + esc(set.lineup[t][k]) + '</button></div>';
-      }
-      h += '</div>';
+      var layout = side === 'left' ? LEFT_LAYOUT : RIGHT_LAYOUT;
+      h += '<div class="cgrid">';
+      layout.forEach(function (row) {
+        row.forEach(function (k) {
+          var act = ui.kp && ui.kp.team === t && ui.kp.k === k;
+          var num = set.lineup[t][k];
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (act ? ' active' : '') + '" data-act="kp" data-team="' + t + '" data-k="' + k + '" aria-label="' + esc(tn(g, t)) + ' spot ' + SB.ROMAN[k] + '">' + esc(num) +
+            (num && set.captain[t] === num ? '<sup class="capmark">C</sup>' : '') + '</button></div>';
+        });
+      });
+      h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
       if (g.settings.libero) {
         var la = ui.kp && ui.kp.team === t && ui.kp.k === 'lib';
         h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (la ? ' active' : '') + '" data-act="kp" data-team="' + t + '" data-k="lib" aria-label="' + esc(tn(g, t)) + ' libero">' + (set.libero[t] ? esc(set.libero[t]) : '<i>none</i>') + '</button></div>';
       }
+      var nums = set.lineup[t].filter(Boolean);
+      h += '<div class="caprow"><span>Captain</span>' + (nums.length ? nums.map(function (n) {
+        return '<button type="button" class="capchip' + (set.captain[t] === n ? ' on' : '') + '" data-act="captain" data-team="' + t + '" data-num="' + esc(n) + '">' + esc(n) + '</button>';
+      }).join('') : '<i>Enter numbers first</i>') + '</div>';
       h += '</fieldset>';
     });
     h += '</div>';
@@ -307,6 +339,7 @@
     h += '</main>';
     h += '<footer class="livefoot"><div class="fixes">' +
       (prefs.showLog ? '' : '<button class="btn" data-act="log">Game log</button>') +
+      '<button class="btn" data-act="more">More</button>' +
       '<button class="btn" data-act="check">Lineup check</button>' +
       '<button class="btn strong" data-act="undo">Undo</button></div></footer>';
     h += '</div>';
@@ -412,6 +445,23 @@
     return mWrap(h, 'logm');
   }
 
+  function mMore() {
+    var g = game(), m = ui.modal, t = m.cardTeam;
+    var h = '<h2>More</h2><p class="sub">Less common calls. Each one is logged and printed on the scoresheet.</p>';
+    h += '<div class="moresec"><h3>Replay</h3><p class="hint">The rally is replayed. No point is scored.</p><div class="actions left"><button class="btn" data-act="replay">Record replay</button></div></div>';
+    h += '<div class="moresec"><h3>Penalty point</h3><p class="hint">Awards a point and serve to the team you tap.</p><div class="actions left">' +
+      ['A', 'B'].map(function (x) { return '<button class="btn team-' + x + ' teamtint" data-act="penalty" data-team="' + x + '">Point to ' + esc(tn(g, x)) + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="moresec"><h3>Card</h3><div class="cardgrid"><div>' +
+      '<div class="lbl">Team that gets the card</div><div class="seg">' + ['A', 'B'].map(function (x) { return '<button type="button" class="' + (t === x ? 'on' : '') + '" data-act="cardteam" data-team="' + x + '">' + esc(tn(g, x)) + '</button>'; }).join('') + '</div>' +
+      '<div class="lbl" style="margin-top:10px">Card</div><div class="seg">' + [['yellow', 'Yellow (warning)'], ['red', 'Red (point to opponent)']].map(function (c) { return '<button type="button" class="' + (m.color === c[0] ? 'on' : '') + '" data-act="cardcolor" data-c="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="hint">Leave the number blank for a coach or bench card.</p></div>' +
+      '<div><div class="lbl">Player number</div><div class="kpdisplay team-' + t + '">' + (m.who ? esc(m.who) : '<span>coach/bench</span>') + '</div>' +
+      '<div class="keys inline">' + keypadKeys('<button type="button" class="key fn" data-act="key" data-key="back" aria-label="Delete">⌫</button>') + '</div></div></div>' +
+      '<div class="actions left"><button class="btn primary" data-act="docard">Record ' + m.color + ' card</button></div></div>';
+    h += '<div class="actions"><button class="btn" data-act="close">Close</button></div>';
+    return mWrap(h, 'morem');
+  }
+
   function mMenu() {
     var g = game();
     var h = '<h2>Menu</h2><div class="menulist">' +
@@ -444,7 +494,7 @@
     if (v === 'setup') applyColors(ui.draft);
     if (ui.modal) {
       var k = ui.modal.kind;
-      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : '';
+      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : k === 'more' ? mMore() : '';
     }
     var scrollY = window.scrollY;
     var listEl = document.querySelector('.loglist'), listScroll = listEl ? listEl.scrollTop : 0;
@@ -491,6 +541,10 @@
     function n(id, d) { var x = parseInt(v(id), 10); return isNaN(x) || x < 1 ? d : x; }
     g.info.home = v('f-home'); g.info.away = v('f-away'); g.info.date = v('f-date');
     g.info.site = v('f-site'); g.info.scorer = v('f-scorer'); g.info.referee = v('f-ref');
+    function keep(id, key) { var el = document.getElementById(id); if (el) g.info[key] = el.value.trim(); }
+    keep('f-ref2', 'referee2'); keep('f-gamenum', 'gameNumber'); keep('f-matchno', 'matchNo'); keep('f-comp', 'competition');
+    keep('f-city', 'city'); keep('f-pool', 'pool'); keep('f-div', 'division'); keep('f-cat', 'category');
+    var sty = document.getElementById('f-style'); if (sty) g.settings.style = sty.value;
     var lvl = document.getElementById('f-level'); if (lvl) g.info.level = lvl.value;
     if (document.getElementById('f-levelother')) g.info.levelOther = v('f-levelother');
     var fmt = document.getElementById('f-format'); if (fmt) g.settings.format = fmt.value;
@@ -522,6 +576,7 @@
       ui.modal.inn = pressKey(ui.modal.inn, key);
       ui.modal.error = null; render(); return;
     }
+    if (ui.modal && ui.modal.kind === 'more') { ui.modal.who = pressKey(ui.modal.who, key); render(); return; }
     if (!ui.kp || ui.view !== 'lineup') return;
     var set = g.sets[curSetIdx(g)];
     if (key === 'next') {
@@ -552,14 +607,39 @@
       case 'new': ui.edit = false; ui.draft = SB.newGame(); ui.view = 'setup'; render(); break;
       case 'newmatch':
         ui.edit = false;
-        ui.draft = SB.newGame({ date: g.info.date, site: g.info.site, scorer: g.info.scorer, referee: g.info.referee, level: g.info.level, settings: g.settings });
+        ui.draft = SB.newGame({ date: g.info.date, site: g.info.site, scorer: g.info.scorer, referee: g.info.referee, referee2: g.info.referee2, level: g.info.level, settings: g.settings,
+          competition: g.info.competition, city: g.info.city, pool: g.info.pool, division: g.info.division, category: g.info.category });
         if (g.info.levelOther) ui.draft.info.levelOther = g.info.levelOther;
         ui.gameId = null; ui.view = 'setup'; render(); window.scrollTo(0, 0); break;
       case 'home': ui.modal = null; ui.kp = null; ui.view = 'home'; ui.gameId = null; ui.draft = null; render(); break;
       case 'open': openGame(el.getAttribute('data-id')); break;
       case 'pdf': doPDF(db.games[el.getAttribute('data-id')] || g, 'save'); break;
       case 'print': doPDF(db.games[el.getAttribute('data-id')] || g, 'print'); break;
-      case 'blankpdf': var bg = SB.newGame(); bg.info.date = ''; bg.info.level = ''; doPDF(bg, 'save'); break;
+      case 'blankpdf':
+        var bg = SB.blankGame(el.getAttribute('data-style'));
+        var bdoc = SB.makePDF(window.jspdf.jsPDF, bg); bdoc.save('Blank_' + el.getAttribute('data-style').toUpperCase() + '_scoresheet.pdf'); break;
+
+      /* more menu */
+      case 'more': ui.modal = { kind: 'more', cardTeam: 'A', color: 'yellow', who: '' }; render(); break;
+      case 'cardteam': ui.modal.cardTeam = team; render(); break;
+      case 'cardcolor': ui.modal.color = el.getAttribute('data-c'); render(); break;
+      case 'replay':
+        if (SB.replay(g, si).done) { toast('This set is over.'); break; }
+        addEvent({ t: 'rp' }); ui.modal = null; render(); toast('Replay recorded'); break;
+      case 'penalty':
+        if (SB.replay(g, si).done) { toast('This set is over.'); break; }
+        addEvent({ t: 'pen', team: team }); ui.modal = null; render(); toast('Penalty point to ' + tn(g, team)); break;
+      case 'docard':
+        var mm = ui.modal;
+        if (SB.replay(g, si).done) { toast('This set is over.'); break; }
+        addEvent({ t: 'card', team: mm.cardTeam, color: mm.color, who: mm.who || '' });
+        ui.modal = null; render();
+        toast((mm.color === 'red' ? 'Red' : 'Yellow') + ' card, ' + tn(g, mm.cardTeam) + (mm.color === 'red' ? '. Point to ' + tn(g, O(mm.cardTeam)) : ''));
+        break;
+      case 'captain':
+        var cs = g.sets[si];
+        cs.captain[team] = cs.captain[team] === el.getAttribute('data-num') ? '' : el.getAttribute('data-num');
+        save(); render(); break;
       case 'backup':
         var bgm = db.games[el.getAttribute('data-id')];
         var blob = new Blob([JSON.stringify(bgm, null, 1)], { type: 'application/json' });
@@ -593,6 +673,7 @@
         var from = g.sets[Number(el.getAttribute('data-from'))], set = g.sets[si];
         set.lineup[team] = from.lineup[team].slice();
         set.libero[team] = from.libero[team] || '';
+        set.captain[team] = (from.captain && from.captain[team]) || '';
         ui.lineupErr = null; save(); render();
         toast('Copied ' + tn(g, team) + ' from set ' + (Number(el.getAttribute('data-from')) + 1) + '. Tap any box to change it.');
         break;
@@ -675,6 +756,8 @@
       readSetupForm();
       ui.draft.settings.points = SB.pointsFor(ui.draft.settings.setsTotal);
       render();
+    } else if (id === 'f-style') {
+      readSetupForm(); render();
     } else if (id === 'f-format') {
       readSetupForm(); render();
     } else if (id === 'importFile') {
@@ -716,13 +799,13 @@
 
   /* physical keyboard support for laptops */
   document.addEventListener('keydown', function (e) {
-    var inSub = ui.modal && ui.modal.kind === 'sub';
+    var inSub = ui.modal && (ui.modal.kind === 'sub' || ui.modal.kind === 'more');
     if (ui.kp || inSub) {
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); keypadPress(e.key); return; }
       if (e.key === 'Backspace') { e.preventDefault(); keypadPress(inSub ? 'back' : 'clr'); return; }
       if (e.key === 'Enter' || e.key === 'Tab') {
         e.preventDefault();
-        if (inSub) document.querySelector('[data-act="dosub"]').click(); else keypadPress('next');
+        if (inSub) { var b = document.querySelector('[data-act="dosub"],[data-act="docard"]'); if (b) b.click(); } else keypadPress('next');
         return;
       }
     }
