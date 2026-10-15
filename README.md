@@ -45,7 +45,16 @@ python3 cranbrook/build.py   # -> cranbrook/Volleyball_Scorebook.html
 python3 retail/build.py      # -> retail/dist/Digital_Volleyball_Scorebook.html
 ```
 
-## Deploying the Cranbrook version (Macaly)
+## Hosting the Cranbrook version
+
+The app runs from two places. Saved games stay in the browser, so each address keeps its own games.
+
+- **GitHub Pages** (for school iPads; GitHub sites are approved by the school filter):
+  https://scoobytoth1999.github.io/Volleyball-Scorebook/ redirects to `cranbrook/hosted/index.html`.
+  Pages serves `main` from the repo root, so pushing to `main` deploys. `.nojekyll` turns off Jekyll processing.
+- **Macaly** (the original host, used by the existing iPad icon). Details below.
+
+### Deploying to Macaly
 
 - App: chat ID `rsf4asx7j0a1xrwl5svy1jfx`, live at https://rsf4asx7j0a1xrwl5svy1jfx.macaly.app/sb/index.html
 - Static files live in `public/sb/` in the Macaly project; the root route redirects there.
