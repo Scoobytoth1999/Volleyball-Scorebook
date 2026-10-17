@@ -404,9 +404,140 @@
   }
 
   /* ---------- edit lineup during play ---------- */
-  function mEditLineup() {
+  function elTabs(m) {
+    return '<div class="seg eltabs"><button type="button" class="' + (m.mode === 'court' ? 'on' : '') + '" data-act="elmode" data-mode="court">On court now</button>' +
+      '<button type="button" class="' + (m.mode === 'start' ? 'on' : '') + '" data-act="elmode" data-mode="start">Starting lineup</button></div>';
+  }
+
+  function mEditCourt() {
+    var g = game(), si = curSetIdx(g), set = g.sets[si], m = ui.modal, d = m.draft, R = SB.replay(g, si);
+    var h = '<div class="checkhead"><h2>Edit lineup · ' + R.score.A + '–' + R.score.B + '</h2>' + elTabs(m) + '</div>';
+    h += '<p class="sub">Fix who is on the court right now, like a sub entered with the wrong number or for the wrong player. The app corrects that sub in the record, and the rest of the set recalculates. Tap a player to change the number, or tap <b>Swap</b> to trade two spots.</p>';
+    h += '<div class="lineupcourt">';
+    [[set.left, 'left'], [O(set.left), 'right']].forEach(function (pair, idx) {
+      var t = pair[0], side = pair[1], tm = R.T[t];
+      if (idx === 1) h += netEl('tall');
+      h += '<fieldset class="lineup team-' + t + ' ' + side + '"><legend>' + esc(tn(g, t)) + (R.serving === t ? ' · serving' : '') + '</legend><div class="cgrid">';
+      (side === 'left' ? LEFT_LAYOUT : RIGHT_LAYOUT).forEach(function (row) {
+        row.forEach(function (p) {
+          var k = tm.court[p];
+          if (tm.lib.slot === k) {
+            h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><div class="nbox libon" title="Libero">' + esc(tm.lib.num) + '<sup class="capmark">L</sup></div></div>';
+            return;
+          }
+          var on = m.sel && m.sel.team === t && m.sel.k === k, num = d.court[t][k];
+          var changed = num !== tm.slots[k].current;
+          var cameIn = tm.subs.some(function (s) { return s.slot === k; });
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + (cameIn ? ' <i class="subtag">sub</i>' : '') + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) + '</button></div>';
+        });
+      });
+      h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
+      h += '<div class="hint small">Subs used: ' + tm.subCount + '</div></fieldset>';
+    });
+    h += '</div>';
+    if (m.sel) {
+      var label = tn(g, m.sel.team) + ' · Spot ' + SB.ROMAN[m.sel.k];
+      var cur = d.court[m.sel.team][m.sel.k];
+      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
+        '<button type="button" class="btn' + (m.swap ? ' primary' : '') + '" data-act="elswap">' + (m.swap ? 'Now tap the spot to swap with' : 'Swap with another spot') + '</button></div>' +
+        '<div class="keys inline">' + keypadKeys('<button type="button" class="key fn" data-act="key" data-key="back" aria-label="Delete">⌫</button>') + '</div></div>';
+    } else {
+      h += '<p class="hint center">Tap a player to edit.</p>';
+    }
+    h += '<p class="err"' + (m.error ? '' : ' hidden') + '>' + esc(m.error || '') + '</p>';
+    h += '<div class="actions"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="elsave">Save</button></div>';
+    return mWrap(h, 'wide editlu');
+  }
+
+  /* Find the record change that makes the court match what the scorer says is on the floor. */
+  function courtFixError(g, t, target, lib) {
+    if (target.some(function (x) { return !x; })) return 'Fill in all six numbers for ' + tn(g, t) + '.';
+    var seen = {}, dup = null;
+    target.forEach(function (x) { if (seen[x]) dup = x; seen[x] = 1; });
+    if (dup) return tn(g, t) + ' has #' + dup + ' in two spots.';
+    if (lib && seen[lib]) return '#' + lib + ' is ' + tn(g, t) + '\'s libero. Use the Libero button for the libero.';
+    return null;
+  }
+  function resolveCourtFix(g, si, t, target) {
+    var set = g.sets[si];
+    var base = SB.replay(g, si);
+    var baseIgnored = base.log.filter(function (e) { return e.ignored; }).length;
+    function test(trial) {
+      var g2 = JSON.parse(JSON.stringify(g)); g2.sets[si] = trial;
+      var R = SB.replay(g2, si);
+      if (R.log.filter(function (e) { return e.ignored; }).length > baseIgnored) return false;
+      if (trial.events.some(function (ev) { return ev.t === 'sub' && ev.out === ev.inn; })) return false;
+      return R.T[t].slots.every(function (s, k) { return s.current === target[k]; });
+    }
+    function clone() { return JSON.parse(JSON.stringify(set)); }
+    function renameCards(trial, fromIdx, oldN, newN) {
+      trial.events.forEach(function (ev, i) { if (i > fromIdx && ev.team === t && ev.t === 'card' && ev.who === oldN) ev.who = newN; });
+    }
+    var cur = base.T[t].slots.map(function (s) { return s.current; });
+    var values = target.concat(cur).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    var subIdx = [];
+    base.log.forEach(function (e) { if (e.ev.t === 'sub' && e.ev.team === t && !e.ignored) subIdx.push(e.idx); });
+    subIdx.reverse(); // newest first
+    // 1. a single wrong entry: one sub's "in" or "out" number, or a starter who never left
+    for (var a = 0; a < subIdx.length; a++) {
+      var i = subIdx[a], ev = set.events[i];
+      var fields = ['inn', 'out'];
+      for (var f = 0; f < 2; f++) {
+        for (var v = 0; v < values.length; v++) {
+          if (values[v] === ev[fields[f]]) continue;
+          var tr = clone(); tr.events[i][fields[f]] = values[v];
+          if (fields[f] === 'inn') renameCards(tr, i, ev.inn, values[v]);
+          if (test(tr)) return tr;
+        }
+      }
+    }
+    for (var k = 0; k < 6; k++) {
+      if (target[k] === cur[k]) continue;
+      var tr2 = clone(); tr2.lineup[t][k] = target[k]; renameCards(tr2, -1, cur[k], target[k]);
+      if (test(tr2)) return tr2;
+    }
+    // 2. several spots wrong: fix each spot's most recent entry
+    var tr3 = clone();
+    for (var k2 = 0; k2 < 6; k2++) {
+      if (target[k2] === cur[k2]) continue;
+      var lastSub = -1;
+      base.log.forEach(function (e) { if (e.ev.t === 'sub' && e.ev.team === t && !e.ignored && e.slot === k2) lastSub = e.idx; });
+      if (lastSub >= 0) { tr3.events[lastSub].inn = target[k2]; renameCards(tr3, lastSub, cur[k2], target[k2]); }
+      else { tr3.lineup[t][k2] = target[k2]; renameCards(tr3, -1, cur[k2], target[k2]); }
+    }
+    if (test(tr3)) return tr3;
+    return null;
+  }
+
+  function saveCourtEdit() {
     var g = game(), si = curSetIdx(g), set = g.sets[si], m = ui.modal, d = m.draft;
-    var h = '<div class="checkhead"><h2>Edit lineup · Set ' + (si + 1) + '</h2></div>';
+    var R0 = SB.replay(g, si), original = JSON.parse(JSON.stringify(set)), changed = [];
+    for (var x = 0; x < 2; x++) {
+      var t = ['A', 'B'][x];
+      var cur = R0.T[t].slots.map(function (s) { return s.current; });
+      if (JSON.stringify(cur) === JSON.stringify(d.court[t])) continue;
+      var err = courtFixError(g, t, d.court[t], R0.T[t].lib.num);
+      var fixed = err ? null : resolveCourtFix(g, si, t, d.court[t]);
+      if (!fixed) {
+        g.sets[si] = original;  // undo a fix already applied to the other team
+        m.error = err || 'That doesn\'t match any single sub or starting number for ' + tn(g, t) + '. Fix it one change at a time, or check the game log.';
+        render(); return;
+      }
+      g.sets[si] = fixed;   // the next team is resolved on top of this one
+      changed.push(t);
+    }
+    if (!changed.length) { ui.modal = null; render(); toast('No changes'); return; }
+    var fs = g.sets[si];
+    fs.fixes = (fs.fixes || []).concat(changed.map(function (t) { return { team: t, at: R0.score[t] + '-' + R0.score[O(t)], ts: Date.now() }; }));
+    save();
+    ui.modal = { kind: 'check', pre: false }; render();
+    toast('Corrected. Check the floor against this view.');
+  }
+
+  function mEditLineup() {
+    if (ui.modal.mode === 'court') return mEditCourt();
+    var g = game(), si = curSetIdx(g), set = g.sets[si], m = ui.modal, d = m.draft;
+    var h = '<div class="checkhead"><h2>Edit lineup · Set ' + (si + 1) + '</h2>' + elTabs(m) + '</div>';
     h += '<p class="sub">Fix a starting lineup that was entered wrong. The whole set is recalculated as if it had been entered correctly. Tap a spot to change its number, or tap <b>Swap</b> to trade two spots.</p>';
     h += '<div class="lineupcourt">';
     [[set.left, 'left'], [O(set.left), 'right']].forEach(function (pair, idx) {
@@ -659,7 +790,8 @@
     if (ui.modal && ui.modal.kind === 'more') { ui.modal.who = pressKey(ui.modal.who, key); render(); return; }
     if (ui.modal && ui.modal.kind === 'editlu') {
       var em = ui.modal; if (!em.sel) return;
-      if (em.sel.k === 'lib') em.draft.libero[em.sel.team] = pressKey(em.draft.libero[em.sel.team], key);
+      if (em.mode === 'court') em.draft.court[em.sel.team][em.sel.k] = pressKey(em.draft.court[em.sel.team][em.sel.k], key);
+      else if (em.sel.k === 'lib') em.draft.libero[em.sel.team] = pressKey(em.draft.libero[em.sel.team], key);
       else em.draft.lineup[em.sel.team][em.sel.k] = pressKey(em.draft.lineup[em.sel.team][em.sel.k], key);
       em.error = null; render(); return;
     }
@@ -809,19 +941,22 @@
       case 'check': ui.modal = { kind: 'check', pre: false }; render(); break;
       case 'editlu':
         var es = g.sets[si];
-        ui.modal = { kind: 'editlu', sel: null, swap: false, error: null,
-          draft: { lineup: { A: es.lineup.A.slice(), B: es.lineup.B.slice() }, libero: { A: es.libero.A || '', B: es.libero.B || '' }, captain: { A: (es.captain && es.captain.A) || '', B: (es.captain && es.captain.B) || '' } } };
+        var esR = SB.replay(g, si);
+        ui.modal = { kind: 'editlu', mode: 'court', sel: null, swap: false, error: null,
+          draft: { court: { A: esR.T.A.slots.map(function (s) { return s.current; }), B: esR.T.B.slots.map(function (s) { return s.current; }) },
+            lineup: { A: es.lineup.A.slice(), B: es.lineup.B.slice() }, libero: { A: es.libero.A || '', B: es.libero.B || '' }, captain: { A: (es.captain && es.captain.A) || '', B: (es.captain && es.captain.B) || '' } } };
         render(); break;
       case 'elsel':
         var em2 = ui.modal, kk = el.getAttribute('data-k') === 'lib' ? 'lib' : Number(el.getAttribute('data-k'));
         if (em2.swap && em2.sel && em2.sel.team === team && kk !== 'lib' && kk !== em2.sel.k) {
-          var arr = em2.draft.lineup[team], tmp = arr[kk]; arr[kk] = arr[em2.sel.k]; arr[em2.sel.k] = tmp;
+          var arr = em2.mode === 'court' ? em2.draft.court[team] : em2.draft.lineup[team], tmp = arr[kk]; arr[kk] = arr[em2.sel.k]; arr[em2.sel.k] = tmp;
           em2.swap = false; em2.sel = null; em2.error = null; render(); toast('Swapped spots'); break;
         }
         em2.swap = false; em2.sel = { team: team, k: kk }; render(); break;
       case 'elswap': ui.modal.swap = !ui.modal.swap; render(); break;
+      case 'elmode': ui.modal.mode = el.getAttribute('data-mode'); ui.modal.sel = null; ui.modal.swap = false; ui.modal.error = null; render(); break;
       case 'elcap': var ec = ui.modal.draft.captain; ec[team] = ec[team] === el.getAttribute('data-num') ? '' : el.getAttribute('data-num'); render(); break;
-      case 'elsave': saveLineupEdit(); break;
+      case 'elsave': if (ui.modal.mode === 'court') saveCourtEdit(); else saveLineupEdit(); break;
       case 'swap': g.sets[si].left = O(g.sets[si].left); save(); render(); break;
       case 'rot':
         addEvent({ t: 'rot', team: team, dir: Number(el.getAttribute('data-dir')) }); render(); toast('Rotation corrected for ' + tn(g, team) + '. Noted on the scoresheet.'); break;

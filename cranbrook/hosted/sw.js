@@ -1,6 +1,6 @@
 /* Offline cache for Volleyball Scorebook. Bump VERSION when files change. */
-var VERSION = 'scorebook-v4';
-var FILES = ['index.html', 'style.css?v=4', 'core.js?v=4', 'ui.js?v=4', 'jspdf.umd.min.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
+var VERSION = 'scorebook-v5';
+var FILES = ['index.html', 'style.css?v=5', 'core.js?v=5', 'ui.js?v=5', 'jspdf.umd.min.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });

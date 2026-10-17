@@ -81,7 +81,7 @@ var SB = (function () {
       libero: { A: '', B: '' },
       captain: { A: '', B: '' },
       firstServe: prev ? other(prev.firstServe) : 'A',
-      left: prev ? other(prev.left) : 'A',
+      left: prev ? other(prev.left) : 'B',   // home team (A) starts on the right, then teams switch ends each set
       events: [], started: false, start: null
     };
   }

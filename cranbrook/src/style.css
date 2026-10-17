@@ -297,3 +297,8 @@ button.logrow.sel { background: color-mix(in srgb, var(--ink) 9%, var(--panel));
 .editlu .cgrid { gap: 6px; }
 .editlu .lineup { gap: 6px; }
 .editlu .elpanel .key { min-height: 44px; }
+/* in-game edit: on-court tab */
+.editlu .eltabs button { padding: 8px 14px; min-height: 40px; font-size: 14px; }
+.editlu .subtag { font-style: normal; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.editlu .nbox.libon { display: flex; align-items: center; justify-content: center; opacity: .55; cursor: not-allowed; }
+.editlu .hint.small { font-size: 13px; margin-top: 6px; }

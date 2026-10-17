@@ -75,6 +75,9 @@ Each version's commit holds the hosted files exactly as deployed:
 - **v3** (`d67135f`): MHSAA or AAU scoresheet style, More menu (replay, penalty, card), captain, court-position lineup entry (I–VI)
 - **v4** (`561ff0b`): **Edit lineup** button next to Undo, so the current set's lineup, libero and captain can be fixed mid-game.
   Mistyped numbers are renamed in that set's subs and cards, and the sheet notes "Lineup corrected at X–Y".
+- **v5**: **Edit lineup** opens on the court as it is now. Fixing a player corrects the sub that was entered wrong
+  (wrong number in, or wrong player out) or a starter's number, and the set recalculates. Sub counts stay correct.
+  The starting-lineup fix from v4 is on a second tab. The home team starts set 1 on the right side.
 
 To roll the hosted app back: `git checkout <commit> -- cranbrook/hosted`, then deploy those files.
 
