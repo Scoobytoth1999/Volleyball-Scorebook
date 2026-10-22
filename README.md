@@ -78,6 +78,9 @@ Each version's commit holds the hosted files exactly as deployed:
 - **v5** (`fa383e0`): **Edit lineup** opens on the court as it is now. Fixing a player corrects the sub that was entered wrong
   (wrong number in, or wrong player out) or a starter's number, and the set recalculates. Sub counts stay correct.
   The starting-lineup fix from v4 is on a second tab. The home team starts set 1 on the right side.
+- **v6**: the home team is on the right in every set unless the scorer swaps sides. Tapping a lineup box (or a box in
+  Edit lineup) fades the old number, and the first digit typed replaces it. A **Rotate** button on each team's panel
+  moves that team forward or back one spot without scoring, noted on the sheet as "Rotation corrected".
 
 To roll the hosted app back: `git checkout <commit> -- cranbrook/hosted`, then deploy those files.
 

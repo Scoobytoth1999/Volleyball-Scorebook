@@ -302,3 +302,10 @@ button.logrow.sel { background: color-mix(in srgb, var(--ink) 9%, var(--panel));
 .editlu .subtag { font-style: normal; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .editlu .nbox.libon { display: flex; align-items: center; justify-content: center; opacity: .55; cursor: not-allowed; }
 .editlu .hint.small { font-size: 13px; margin-top: 6px; }
+/* tapped box: old number faded, first digit replaces it */
+.nbox.fresh, .kpdisplay.fresh { color: var(--muted); }
+.nbox.fresh { font-weight: 500; }
+/* rotate modal */
+.rotm { max-width: 520px; }
+.rotm .rotwrap { max-width: 380px; margin: 8px auto 14px; }
+.actions.center { justify-content: center; }

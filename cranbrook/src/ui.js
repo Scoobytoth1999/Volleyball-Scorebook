@@ -95,6 +95,12 @@
     k += last;
     return k;
   }
+  // A box just tapped shows its old number faded; the first digit replaces it.
+  function freshKey(val, key, fresh) {
+    if (fresh && /^[0-9]$/.test(key)) return key;
+    if (fresh && key === 'back') return '';
+    return pressKey(val, key);
+  }
   function pressKey(val, key) {
     val = String(val || '');
     if (key === 'clr') return '';
@@ -256,16 +262,16 @@
       h += '<div class="cgrid">';
       layout.forEach(function (row) {
         row.forEach(function (k) {
-          var act = ui.kp && ui.kp.team === t && ui.kp.k === k;
           var num = set.lineup[t][k];
-          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (act ? ' active' : '') + '" data-act="kp" data-team="' + t + '" data-k="' + k + '" aria-label="' + esc(tn(g, t)) + ' spot ' + SB.ROMAN[k] + '">' + esc(num) +
+          var act = ui.kp && ui.kp.team === t && ui.kp.k === k, fr = act && ui.kp.fresh && num;
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (act ? ' active' : '') + (fr ? ' fresh' : '') + '" data-act="kp" data-team="' + t + '" data-k="' + k + '" aria-label="' + esc(tn(g, t)) + ' spot ' + SB.ROMAN[k] + '">' + esc(num) +
             (num && set.captain[t] === num ? '<sup class="capmark">C</sup>' : '') + '</button></div>';
         });
       });
       h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
       if (g.settings.libero) {
-        var la = ui.kp && ui.kp.team === t && ui.kp.k === 'lib';
-        h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (la ? ' active' : '') + '" data-act="kp" data-team="' + t + '" data-k="lib" aria-label="' + esc(tn(g, t)) + ' libero">' + (set.libero[t] ? esc(set.libero[t]) : '<i>none</i>') + '</button></div>';
+        var la = ui.kp && ui.kp.team === t && ui.kp.k === 'lib', lfr = la && ui.kp.fresh && set.libero[t];
+        h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (la ? ' active' : '') + (lfr ? ' fresh' : '') + '" data-act="kp" data-team="' + t + '" data-k="lib" aria-label="' + esc(tn(g, t)) + ' libero">' + (set.libero[t] ? esc(set.libero[t]) : '<i>none</i>') + '</button></div>';
       }
       var nums = set.lineup[t].filter(Boolean);
       h += '<div class="caprow"><span>Captain</span>' + (nums.length ? nums.map(function (n) {
@@ -301,6 +307,7 @@
     h += '<div class="minor">';
     h += '<button class="btn" data-act="to" data-team="' + t + '">Timeout <b>' + tm.timeouts.length + '/' + S.timeouts + '</b></button>';
     h += '<button class="btn" data-act="sub" data-team="' + t + '">Sub <b>' + tm.subCount + '/' + S.subLimit + '</b></button>';
+    h += '<button class="btn" data-act="rotate" data-team="' + t + '"' + (R.done ? ' disabled' : '') + '>Rotate</button>';
     if (S.libero && tm.lib.num) h += '<button class="btn" data-act="libero" data-team="' + t + '">Libero ' + (tm.lib.slot !== null ? 'out' : 'in') + '</button>';
     h += '</div></section>';
     return h;
@@ -403,6 +410,19 @@
     return mWrap(h);
   }
 
+  /* ---------- rotate a team without scoring ---------- */
+  function mRotate() {
+    var g = game(), si = curSetIdx(g), set = g.sets[si], R = SB.replay(g, si), t = ui.modal.team;
+    var side = set.left === t ? 'left' : 'right';
+    var h = '<div class="checkhead"><h2>Rotate ' + esc(tn(g, t)) + '</h2></div>';
+    h += '<p class="sub">Use this when a team\'s lineup was turned the wrong way and the players are in the wrong spots. It moves the whole team one spot without scoring a point, and the change is noted on the scoresheet.</p>';
+    h += '<div class="rotwrap">' + courtTiles(R, t, side, { big: true }) + '</div>';
+    h += '<div class="actions center"><button class="btn" data-act="rot" data-team="' + t + '" data-dir="-1">↺ Back one</button><button class="btn" data-act="rot" data-team="' + t + '" data-dir="1">↻ Forward one</button></div>';
+    h += '<p class="hint center">Each tap is saved right away. Undo takes one back.</p>';
+    h += '<div class="actions"><button class="btn primary" data-act="close">Done</button></div>';
+    return mWrap(h, 'rotm');
+  }
+
   /* ---------- edit lineup during play ---------- */
   function elTabs(m) {
     return '<div class="seg eltabs"><button type="button" class="' + (m.mode === 'court' ? 'on' : '') + '" data-act="elmode" data-mode="court">On court now</button>' +
@@ -428,7 +448,7 @@
           var on = m.sel && m.sel.team === t && m.sel.k === k, num = d.court[t][k];
           var changed = num !== tm.slots[k].current;
           var cameIn = tm.subs.some(function (s) { return s.slot === k; });
-          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + (cameIn ? ' <i class="subtag">sub</i>' : '') + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) + '</button></div>';
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + (cameIn ? ' <i class="subtag">sub</i>' : '') + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (on && m.sel.fresh && num ? ' fresh' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) + '</button></div>';
         });
       });
       h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
@@ -438,7 +458,7 @@
     if (m.sel) {
       var label = tn(g, m.sel.team) + ' · Spot ' + SB.ROMAN[m.sel.k];
       var cur = d.court[m.sel.team][m.sel.k];
-      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
+      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay' + (m.sel.fresh && cur ? ' fresh' : '') + '">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
         '<button type="button" class="btn' + (m.swap ? ' primary' : '') + '" data-act="elswap">' + (m.swap ? 'Now tap the spot to swap with' : 'Swap with another spot') + '</button></div>' +
         '<div class="keys inline">' + keypadKeys('<button type="button" class="key fn" data-act="key" data-key="back" aria-label="Delete">⌫</button>') + '</div></div>';
     } else {
@@ -548,14 +568,14 @@
         row.forEach(function (k) {
           var on = m.sel && m.sel.team === t && m.sel.k === k, num = d.lineup[t][k];
           var changed = num !== set.lineup[t][k];
-          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) +
+          h += '<div class="cslot"><span class="rn">' + SB.ROMAN[k] + '</span><button type="button" class="nbox' + (on ? ' active' : '') + (on && m.sel.fresh && num ? ' fresh' : '') + (changed ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="' + k + '">' + esc(num) +
             (num && d.captain[t] === num ? '<sup class="capmark">C</sup>' : '') + '</button></div>';
         });
       });
       h += '</div><div class="cgrid-foot">' + (side === 'left' ? '<span>back</span><span>front</span>' : '<span>front</span><span>back</span>') + '</div>';
       if (g.settings.libero) {
         var lon = m.sel && m.sel.team === t && m.sel.k === 'lib';
-        h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (lon ? ' active' : '') + (d.libero[t] !== set.libero[t] ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="lib">' + (d.libero[t] ? esc(d.libero[t]) : '<i>none</i>') + '</button></div>';
+        h += '<div class="slot lib"><span>Libero</span><button type="button" class="nbox' + (lon ? ' active' : '') + (lon && m.sel.fresh && d.libero[t] ? ' fresh' : '') + (d.libero[t] !== set.libero[t] ? ' changed' : '') + '" data-act="elsel" data-team="' + t + '" data-k="lib">' + (d.libero[t] ? esc(d.libero[t]) : '<i>none</i>') + '</button></div>';
       }
       var nums = d.lineup[t].filter(Boolean);
       h += '<div class="caprow"><span>Captain</span>' + nums.map(function (n) {
@@ -566,7 +586,7 @@
     if (m.sel) {
       var label = tn(g, m.sel.team) + ' · ' + (m.sel.k === 'lib' ? 'Libero' : 'Spot ' + SB.ROMAN[m.sel.k]);
       var cur = m.sel.k === 'lib' ? d.libero[m.sel.team] : d.lineup[m.sel.team][m.sel.k];
-      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
+      h += '<div class="elpanel team-' + m.sel.team + '"><div><div class="lbl">' + esc(label) + '</div><div class="kpdisplay' + (m.sel.fresh && cur ? ' fresh' : '') + '">' + (cur ? esc(cur) : '<span>#</span>') + '</div>' +
         (m.sel.k === 'lib' ? '' : '<button type="button" class="btn' + (m.swap ? ' primary' : '') + '" data-act="elswap">' + (m.swap ? 'Now tap the spot to swap with' : 'Swap with another spot') + '</button>') + '</div>' +
         '<div class="keys inline">' + keypadKeys('<button type="button" class="key fn" data-act="key" data-key="back" aria-label="Delete">⌫</button>') + '</div></div>';
     } else {
@@ -705,7 +725,7 @@
     if (v === 'setup') applyColors(ui.draft);
     if (ui.modal) {
       var k = ui.modal.kind;
-      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : k === 'more' ? mMore() : k === 'editlu' ? mEditLineup() : '';
+      h += k === 'sub' ? mSub() : k === 'libero' ? mLibero() : k === 'check' ? mCheck() : k === 'menu' ? mMenu() : k === 'del' ? mConfirmDel() : k === 'log' ? mLog() : k === 'more' ? mMore() : k === 'editlu' ? mEditLineup() : k === 'rotate' ? mRotate() : '';
     }
     var scrollY = window.scrollY;
     var listEl = document.querySelector('.loglist'), listScroll = listEl ? listEl.scrollTop : 0;
@@ -790,9 +810,10 @@
     if (ui.modal && ui.modal.kind === 'more') { ui.modal.who = pressKey(ui.modal.who, key); render(); return; }
     if (ui.modal && ui.modal.kind === 'editlu') {
       var em = ui.modal; if (!em.sel) return;
-      if (em.mode === 'court') em.draft.court[em.sel.team][em.sel.k] = pressKey(em.draft.court[em.sel.team][em.sel.k], key);
-      else if (em.sel.k === 'lib') em.draft.libero[em.sel.team] = pressKey(em.draft.libero[em.sel.team], key);
-      else em.draft.lineup[em.sel.team][em.sel.k] = pressKey(em.draft.lineup[em.sel.team][em.sel.k], key);
+      var fr = em.sel.fresh; em.sel.fresh = false;
+      if (em.mode === 'court') em.draft.court[em.sel.team][em.sel.k] = freshKey(em.draft.court[em.sel.team][em.sel.k], key, fr);
+      else if (em.sel.k === 'lib') em.draft.libero[em.sel.team] = freshKey(em.draft.libero[em.sel.team], key, fr);
+      else em.draft.lineup[em.sel.team][em.sel.k] = freshKey(em.draft.lineup[em.sel.team][em.sel.k], key, fr);
       em.error = null; render(); return;
     }
     if (!ui.kp || ui.view !== 'lineup') return;
@@ -801,8 +822,10 @@
       var order = kpOrder(g), pos = -1;
       order.forEach(function (o, i) { if (o.team === ui.kp.team && o.k === ui.kp.k) pos = i; });
       ui.kp = pos >= 0 && pos < order.length - 1 ? order[pos + 1] : null;
+      if (ui.kp) ui.kp.fresh = true;
     } else {
-      kpSet(set, ui.kp, pressKey(kpGet(set, ui.kp), key));
+      kpSet(set, ui.kp, freshKey(kpGet(set, ui.kp), key, ui.kp.fresh));
+      ui.kp.fresh = false;
       ui.lineupErr = null;
       save();
     }
@@ -884,7 +907,7 @@
         render(); break;
 
       /* lineup + keypad */
-      case 'kp': ui.kp = { team: team, k: el.getAttribute('data-k') === 'lib' ? 'lib' : Number(el.getAttribute('data-k')) }; render(); break;
+      case 'kp': ui.kp = { team: team, k: el.getAttribute('data-k') === 'lib' ? 'lib' : Number(el.getAttribute('data-k')), fresh: true }; render(); break;
       case 'kpclose': ui.kp = null; render(); break;
       case 'key': keypadPress(el.getAttribute('data-key')); break;
       case 'copy':
@@ -952,12 +975,13 @@
           var arr = em2.mode === 'court' ? em2.draft.court[team] : em2.draft.lineup[team], tmp = arr[kk]; arr[kk] = arr[em2.sel.k]; arr[em2.sel.k] = tmp;
           em2.swap = false; em2.sel = null; em2.error = null; render(); toast('Swapped spots'); break;
         }
-        em2.swap = false; em2.sel = { team: team, k: kk }; render(); break;
+        em2.swap = false; em2.sel = { team: team, k: kk, fresh: true }; render(); break;
       case 'elswap': ui.modal.swap = !ui.modal.swap; render(); break;
       case 'elmode': ui.modal.mode = el.getAttribute('data-mode'); ui.modal.sel = null; ui.modal.swap = false; ui.modal.error = null; render(); break;
       case 'elcap': var ec = ui.modal.draft.captain; ec[team] = ec[team] === el.getAttribute('data-num') ? '' : el.getAttribute('data-num'); render(); break;
       case 'elsave': if (ui.modal.mode === 'court') saveCourtEdit(); else saveLineupEdit(); break;
       case 'swap': g.sets[si].left = O(g.sets[si].left); save(); render(); break;
+      case 'rotate': ui.modal = { kind: 'rotate', team: team }; render(); break;
       case 'rot':
         addEvent({ t: 'rot', team: team, dir: Number(el.getAttribute('data-dir')) }); render(); toast('Rotation corrected for ' + tn(g, team) + '. Noted on the scoresheet.'); break;
 
