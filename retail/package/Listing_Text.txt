@@ -15,7 +15,7 @@ Tired of erasing, recounting subs, and arguing about who should be serving? Digi
 
 HOW IT WORKS
 • Set up the match: team names, team colors, level, and officials. Pick a level from 4th grade through college and the rules fill themselves in.
-• Enter lineups on a court diagram with an on-screen number keypad. Mark captains and liberos.
+• Enter lineups on a court diagram with an on-screen number keypad. Tap any box and type to replace a number. Mark captains and liberos.
 • Check both rotations before the first serve.
 • Tap the team that won the rally. The server, rotation, side-outs, and running score update automatically.
 • Print or save the finished scoresheet as a PDF.
@@ -24,6 +24,8 @@ FEATURES
 • Two scoresheet styles: School (NFHS rally scoring) and Club (USAV/AAU style)
 • Live log of the last few rallies, showing who served each point, to settle disputes
 • Undo, plus an editable game log to fix a mistake several rallies back
+• Edit lineup mid-game: fix a sub entered with the wrong number or for the wrong player, and sub counts stay right
+• Rotate button moves a team forward or back one spot when a lineup was turned the wrong way
 • Counts subs and timeouts. Illegal subs are blocked, with an injury (exceptional) sub override.
 • Libero tracking, playing captain, yellow and red cards, penalty points, and replays
 • Lineup check view laid out like the court as seen from the scorer's table
@@ -61,3 +63,12 @@ SUGGESTED TPT SETTINGS
 • Resource type: Classroom forms, Printables, Interactive resources
 • Format: Zip (HTML + PDF)
 • Tags / keywords: volleyball, scorebook, scoresheet, score sheet, coach, game book, rally scoring, NFHS, club volleyball, PE, middle school volleyball, high school volleyball
+
+UPDATE NOTE FOR TPT (paste in the "What's new" / revision notes when you upload)
+Version 1.1:
+• Edit lineup during a game. Fix a sub entered with the wrong number or for the wrong player, or a starting number typed wrong. The set recalculates and sub counts stay right.
+• New Rotate button on each team moves the team forward or back one spot without scoring, for a lineup turned the wrong way. Noted on the scoresheet.
+• Tap a lineup box and type to replace the number. No need to clear it first.
+• The home team now starts on the right side of the screen in every set. Swap sides still switches it.
+• Quick-Start Guide, thumbnails, preview, and video updated.
+Games saved in version 1.0 open in 1.1. Open the new file in the same browser and use Restore if they don't appear.

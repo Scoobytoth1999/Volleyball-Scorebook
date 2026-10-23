@@ -81,7 +81,7 @@ var SB = (function () {
       libero: { A: '', B: '' },
       captain: { A: '', B: '' },
       firstServe: prev ? other(prev.firstServe) : 'A',
-      left: prev ? other(prev.left) : 'A',
+      left: 'B',   // home team (A) is on the right every set unless the scorer swaps sides
       events: [], started: false, start: null
     };
   }
@@ -205,6 +205,7 @@ var SB = (function () {
       entry.score = { A: score.A, B: score.B };
       log.push(entry);
     });
+    (set.fixes || []).forEach(function (f) { notes.push({ team: f.team, text: 'Lineup corrected at ' + f.at }); });
     return { T: T, score: score, serving: serving, done: done, winner: winner, target: target, notes: notes, sanctions: sanctions, log: log, endTs: done ? lastTs : null };
   }
 

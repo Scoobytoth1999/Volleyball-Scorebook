@@ -299,3 +299,24 @@ button.logrow.sel { background: color-mix(in srgb, var(--ink) 9%, var(--panel));
 .aboutsec p { margin: 4px 0; max-width: 62ch; }
 .sel { user-select: all; font-weight: 650; color: var(--ink); }
 .empty .actions { margin-top: 12px; }
+/* ---------- edit lineup during play ---------- */
+.editlu .nbox.changed { border-style: dashed; border-color: var(--warn); }
+.elpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 240px); gap: 16px; align-items: start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.elpanel .kpdisplay { margin-bottom: 10px; }
+@media (max-width: 760px) { .elpanel { grid-template-columns: minmax(0, 1fr); } }
+.editlu .cslot .nbox { min-height: 44px; font-size: 22px; }
+.editlu .cgrid { gap: 6px; }
+.editlu .lineup { gap: 6px; }
+.editlu .elpanel .key { min-height: 44px; }
+/* in-game edit: on-court tab */
+.editlu .eltabs button { padding: 8px 14px; min-height: 40px; font-size: 14px; }
+.editlu .subtag { font-style: normal; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.editlu .nbox.libon { display: flex; align-items: center; justify-content: center; opacity: .55; cursor: not-allowed; }
+.editlu .hint.small { font-size: 13px; margin-top: 6px; }
+/* tapped box: old number faded, first digit replaces it */
+.nbox.fresh, .kpdisplay.fresh { color: var(--muted); }
+.nbox.fresh { font-weight: 500; }
+/* rotate modal */
+.rotm { max-width: 520px; }
+.rotm .rotwrap { max-width: 380px; margin: 8px auto 14px; }
+.actions.center { justify-content: center; }

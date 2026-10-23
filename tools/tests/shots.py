@@ -41,6 +41,12 @@ with sync_playwright() as p:
     pg.click('[data-act=dosub]'); pg.wait_for_timeout(2800)
     pg.click('[data-act=log]'); pg.click('button.logrow >> nth=2'); pg.screenshot(path=O+'08_log.png'); pg.click('[data-act=close]')
     pg.click('[data-act=more]'); pg.screenshot(path=O+'09_more.png'); pg.click('[data-act=close]')
+    # v1.1: Edit lineup (on court now) and Rotate
+    pg.click('[data-act=editlu]'); pg.click('[data-act=elsel][data-team=A][data-k="1"]')
+    pg.click('.keys.inline [data-key="1"]'); pg.click('.keys.inline [data-key="6"]'); pg.wait_for_timeout(300)
+    pg.screenshot(path=O+'13_editlu.png'); pg.click('[data-act=close]')
+    pg.click('[data-act=rotate][data-team=B]'); pg.wait_for_timeout(300); pg.screenshot(path=O+'14_rotate.png'); pg.click('[data-act=close]')
+    pg.wait_for_timeout(2800); pg.screenshot(path=O+'06b_live.png')
     for i in range(60):
         if pg.locator('.setover').count(): break
         pg.wait_for_timeout(360); pg.click('[data-act=point][data-team=A]')

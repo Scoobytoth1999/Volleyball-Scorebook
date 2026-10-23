@@ -6,7 +6,7 @@ There are two versions, kept separate on purpose:
 | Folder | What it is | Who uses it | Status |
 |---|---|---|---|
 | `cranbrook/` | Hosted iPad web app (PWA) | Mike / Cranbrook 7th grade | Live, v4 |
-| `retail/` | Single HTML file for Chrome/Edge on laptops | TpT buyers ("Digital Volleyball Scorebook") | Released build, no in-game lineup edit yet |
+| `retail/` | Single HTML file for Chrome/Edge on laptops | TpT buyers ("Digital Volleyball Scorebook") | Version 1.1 (matches Cranbrook v6) |
 
 Both share the same design: an event-sourced scorer (`core.js`, the `SB` module) plus a UI layer (`ui.js`).
 Each set stores a lineup and a list of events, and `SB.replay(game, setIndex)` rebuilds the score,
@@ -30,7 +30,7 @@ vendor/
   jspdf.umd.min.js   jsPDF 2.5.1, inlined by both builds
 tools/
   guide/         Quick-Start Guide source (guide.html + screenshots) and render_guide.py
-  listing/       TpT thumbnail source (thumbs.html + screenshots)
+  listing/       TpT thumbnail source (thumbs.html + screenshots), render_thumbs.py, build_preview.py
   video/         video.py: records the captioned preview video with Playwright
   tests/         Playwright and Node scripts used for testing and seeding sample matches
 ```
